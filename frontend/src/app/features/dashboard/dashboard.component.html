@@ -1,4 +1,137 @@
-<section class="dashboard">
-  <h2>Controle de {{ auth.usuario()?.nome }}</h2>
-  <p>Seus dados financeiros ficam separados por PIN. Use Entradas e Saídas no menu.</p>
+<section class="finance-page">
+  <header class="dash-head">
+    <div>
+      <p class="finance-kicker">Dashboard</p>
+      <h2>Resumo de {{ usuarioNome() }}</h2>
+      <p>Veja o mes atual, o ano ou o geral. Aqui e so resumo e conferência.</p>
+      <p class="dash-period">Periodo: <strong>{{ periodoAtual() }}</strong></p>
+    </div>
+
+    <div class="dash-actions">
+      <div class="period-selector" aria-label="Escolha o período do resumo">
+        <button type="button" [class.is-active]="visaoSelecionada() === 'mes'" (click)="selecionarVisao('mes')">
+          Mês atual
+        </button>
+        <button type="button" [class.is-active]="visaoSelecionada() === 'ano'" (click)="selecionarVisao('ano')">
+          Ano
+        </button>
+        <button type="button" [class.is-active]="visaoSelecionada() === 'geral'" (click)="selecionarVisao('geral')">
+          Geral
+        </button>
+      </div>
+
+      <div class="dash-links" aria-label="Atalhos">
+        <a routerLink="/entradas" class="primary-link">Nova entrada</a>
+        <a routerLink="/saidas" class="primary-link primary-link--outline">Nova saída</a>
+      </div>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <p class="finance-status" role="status">Carregando seu resumo financeiro...</p>
+  } @else if (errorMessage()) {
+    <p class="finance-status finance-status--error" role="alert">{{ errorMessage() }}</p>
+  } @else {
+    <section class="metric-grid" aria-label="Cards do resumo financeiro">
+      <article class="metric-card metric-card--income">
+        <span>Entradas</span>
+        <strong>{{ totalEntradas() | secureCurrency }}</strong>
+        <small>{{ quantidadeEntradas() }} registro(s)</small>
+      </article>
+
+      <article class="metric-card metric-card--expense">
+        <span>Saídas</span>
+        <strong>{{ totalSaidas() | secureCurrency }}</strong>
+        <small>{{ quantidadeSaidas() }} registro(s)</small>
+      </article>
+
+      <article class="metric-card" [class.metric-card--bad]="saldo() < 0">
+        <span>Sobrou</span>
+        <strong>{{ saldo() | secureCurrency }}</strong>
+        <small>Entradas menos saídas</small>
+      </article>
+
+      <article class="metric-card" [class.metric-card--bad]="saldoTotal() < 0">
+        <span>Saldo total</span>
+        <strong>{{ saldoTotal() | secureCurrency }}</strong>
+        <small>Todo o histórico</small>
+      </article>
+    </section>
+
+    <section class="finance-grid">
+      <article class="finance-panel finance-panel--wide">
+        <div class="panel-heading">
+          <div>
+            <span class="finance-kicker">Mensagem</span>
+            <h3>{{ mensagemResumo() }}</h3>
+          </div>
+        </div>
+
+        <div class="progress-stack" aria-label="Comparação entre entradas e saídas">
+          <div>
+            <span>Entradas</span>
+            <div class="progress-track">
+              <span class="progress-fill progress-fill--income"></span>
+            </div>
+          </div>
+          <div>
+            <span>Saídas ({{ percentualSaidas() }}%)</span>
+            <div class="progress-track">
+              <span class="progress-fill progress-fill--expense" [style.width.%]="percentualSaidas()"></span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="finance-panel">
+        <span class="finance-kicker">Dica simples</span>
+        <h3>Cadastre do jeito mais fácil.</h3>
+        <p>Exemplo: pagou mercado? Abre “Saídas” e coloca “Mercado” e o valor.</p>
+      </article>
+    </section>
+
+    @if (settings().showRecentMovements) {
+    <section class="finance-panel">
+      <div class="panel-heading">
+        <div>
+          <span class="finance-kicker">Últimos lançamentos</span>
+          <h3>Tabela simples para conferir o que foi registrado.</h3>
+        </div>
+      </div>
+
+      @if (movimentosRecentes().length > 0) {
+        <div class="table-wrap">
+          <table class="finance-table">
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Descrição</th>
+                <th>Data</th>
+                <th class="number-cell">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (movimento of movimentosRecentes(); track movimento.tipo + movimento.id) {
+                <tr>
+                  <td>
+                    <span class="type-pill" [class.type-pill--expense]="movimento.tipo === 'saida'">
+                      {{ movimento.tipo === 'entrada' ? 'Entrada' : 'Saída' }}
+                    </span>
+                  </td>
+                  <td>{{ movimento.descricao }}</td>
+                  <td>{{ movimento.data | date: 'dd/MM/yyyy' }}</td>
+                  <td class="number-cell">
+                    {{ movimento.valor | secureCurrency }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="empty-state">Ainda não existe lançamento neste período. Cadastre uma entrada ou saída.</p>
+      }
+    </section>
+    }
+  }
 </section>

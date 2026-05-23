@@ -29,19 +29,33 @@ export class AuthService {
   login(pin: string): Observable<LoginResponse> {
     return this.http
       .post<LoginResponse>(`${this.api.baseUrl}/auth/login`, { pin })
-      .pipe(
-        tap((response) => {
-          sessionStorage.setItem(STORAGE_TOKEN, response.token);
-          sessionStorage.setItem(STORAGE_USUARIO, JSON.stringify(response.usuario));
-          this.usuarioSignal.set(response.usuario);
-        }),
-      );
+      .pipe(tap((response) => this.persistSession(response)));
   }
 
   logout(): void {
     sessionStorage.removeItem(STORAGE_TOKEN);
     sessionStorage.removeItem(STORAGE_USUARIO);
     this.usuarioSignal.set(null);
+  }
+
+  atualizarNome(nome: string, pinAtual: string): Observable<LoginResponse> {
+    return this.http
+      .patch<LoginResponse>(`${this.api.baseUrl}/auth/nome`, { nome, pinAtual })
+      .pipe(tap((response) => this.persistSession(response)));
+  }
+
+  atualizarPin(pinAtual: string, pinNovo: string, pinConfirmacao: string): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(`${this.api.baseUrl}/auth/pin`, {
+      pinAtual,
+      pinNovo,
+      pinConfirmacao,
+    });
+  }
+
+  private persistSession(response: LoginResponse): void {
+    sessionStorage.setItem(STORAGE_TOKEN, response.token);
+    sessionStorage.setItem(STORAGE_USUARIO, JSON.stringify(response.usuario));
+    this.usuarioSignal.set(response.usuario);
   }
 
   private readStoredUsuario(): Usuario | null {

@@ -1,4 +1,4 @@
-import { Component, ElementRef, QueryList, ViewChildren, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, QueryList, ViewChildren, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -10,7 +10,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent {
+export class LoginComponent implements AfterViewInit {
   @ViewChildren('pinInput') pinInputs!: QueryList<ElementRef<HTMLInputElement>>;
 
   readonly digits = signal(['', '', '', '']);
@@ -21,6 +21,10 @@ export class LoginComponent {
     private readonly auth: AuthService,
     private readonly router: Router,
   ) {}
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.pinInputs.first?.nativeElement.focus());
+  }
 
   onDigitInput(index: number, event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -57,6 +61,33 @@ export class LoginComponent {
     }
   }
 
+  onPaste(event: ClipboardEvent): void {
+    event.preventDefault();
+    const pastedText = event.clipboardData?.getData('text') ?? '';
+    const pastedDigits = pastedText.replace(/\D/g, '').slice(0, 4);
+
+    if (!pastedDigits) {
+      return;
+    }
+
+    const nextDigits = ['', '', '', ''];
+    for (let index = 0; index < pastedDigits.length; index += 1) {
+      nextDigits[index] = pastedDigits[index];
+    }
+
+    this.digits.set(nextDigits);
+    this.errorMessage.set('');
+
+    setTimeout(() => {
+      this.pinInputs.forEach((pinInput, index) => {
+        pinInput.nativeElement.value = nextDigits[index];
+      });
+
+      const nextFocusIndex = Math.min(pastedDigits.length, 3);
+      this.pinInputs.get(nextFocusIndex)?.nativeElement.focus();
+    });
+  }
+
   entrar(): void {
     const pin = this.digits().join('');
 
@@ -71,7 +102,7 @@ export class LoginComponent {
     this.auth.login(pin).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigateByUrl('/');
+        this.router.navigateByUrl('/dashboard');
       },
       error: () => {
         this.loading.set(false);

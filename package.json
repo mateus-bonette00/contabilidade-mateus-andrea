@@ -4,12 +4,15 @@
   "private": true,
   "description": "Controle financeiro simples - entradas e saídas",
   "scripts": {
+    "dev:all": "npm run db:up && npm run db:seed-users && (npm run dev:api & npm run dev:web & wait)",
+    "kill:4200": "bash -lc \"lsof -ti tcp:4200 | xargs -r kill -9\"",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "dev:api": "npm run dev --prefix backend",
-    "dev:web": "npm start --prefix frontend",
+    "dev:web": "npm run kill:4200 && npm start --prefix frontend -- --port 4200",
     "build:api": "npm run build --prefix backend",
     "build:web": "npm run build --prefix frontend",
-    "db:migrate": "PGPASSWORD=contabilidade psql -h localhost -U contabilidade -d contabilidade -f database/migrate-usuarios.sql"
+    "db:migrate": "PGPASSWORD=contabilidade psql -h localhost -p 5433 -U contabilidade -d contabilidade -f database/migrate-usuarios.sql",
+    "db:seed-users": "npm run seed:users --prefix backend"
   }
 }

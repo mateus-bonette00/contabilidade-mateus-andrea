@@ -1,39 +1,42 @@
-<div class="login-page">
-  <header class="login-brand">
-    <img src="/logo-FamilyMoney.png" alt="FamilyMoney" class="login-logo" />
-  </header>
-
+<main class="login-page">
   <section class="login-card" aria-label="Login com PIN">
-    <h1 class="login-title">DIGITE SEU PIN</h1>
+    <div class="login-card-content">
+    <img src="/logo-FamilyMoney.png" alt="FamilyMoney" class="login-logo" />
 
-    <div class="pin-row" role="group" aria-label="Campos do PIN">
-      @for (digit of digits(); track $index) {
-        <input
-          #pinInput
-          class="pin-box"
-          type="password"
-          inputmode="numeric"
-          maxlength="1"
-          autocomplete="off"
-          [value]="digit"
-          [attr.aria-label]="'Dígito ' + ($index + 1)"
-          (input)="onDigitInput($index, $event)"
-          (keydown)="onDigitKeydown($index, $event)"
-        />
+    <h1 class="login-title">Digite seu PIN</h1>
+    <p class="login-subtitle">Acesse sua conta com os 4 números cadastrados.</p>
+
+    <form class="login-form" (ngSubmit)="entrar()">
+      <div class="pin-row" role="group" aria-label="Campos do PIN">
+        @for (digit of digits(); track $index) {
+          <input
+            #pinInput
+            class="pin-box"
+            type="password"
+            inputmode="numeric"
+            maxlength="1"
+            autocomplete="off"
+            [value]="digit"
+            [attr.aria-label]="'Dígito ' + ($index + 1)"
+            (input)="onDigitInput($index, $event)"
+            (keydown)="onDigitKeydown($index, $event)"
+            (paste)="onPaste($event)"
+          />
+        }
+      </div>
+
+      @if (errorMessage()) {
+        <p class="login-error" role="alert">{{ errorMessage() }}</p>
       }
+
+      <button
+        type="submit"
+        class="login-button"
+        [disabled]="loading()"
+      >
+        {{ loading() ? 'Entrando...' : 'Entrar na Conta' }}
+      </button>
+    </form>
     </div>
-
-    @if (errorMessage()) {
-      <p class="login-error" role="alert">{{ errorMessage() }}</p>
-    }
-
-    <button
-      type="button"
-      class="login-button"
-      [disabled]="loading()"
-      (click)="entrar()"
-    >
-      {{ loading() ? 'ENTRANDO...' : 'ENTRAR' }}
-    </button>
   </section>
-</div>
+</main>

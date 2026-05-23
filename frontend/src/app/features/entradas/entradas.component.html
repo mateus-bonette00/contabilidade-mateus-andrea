@@ -1,4 +1,90 @@
-<section class="entradas">
-  <h2>Entradas</h2>
-  <p>Salário e outras receitas mensais.</p>
+<section class="finance-page">
+  <div class="finance-hero">
+    <div class="finance-hero__copy">
+      <p class="finance-kicker">Entradas</p>
+      <h2>Cadastre todo dinheiro que entrou.</h2>
+      <p>Exemplo: salário, ajuda da família, venda, pix recebido ou qualquer renda do mês.</p>
+    </div>
+
+    <article class="mini-total-card">
+      <span>Total de entradas</span>
+      <strong>{{ totalEntradas() | secureCurrency }}</strong>
+      <small>{{ entradas().length }} registro(s)</small>
+    </article>
+  </div>
+
+  <section class="finance-grid">
+    <article class="finance-panel">
+      <span class="finance-kicker">Novo cadastro</span>
+      <h3>Adicionar entrada</h3>
+
+      <form class="finance-form" [formGroup]="form" (ngSubmit)="cadastrar()">
+        <label>
+          Descrição
+          <input type="text" formControlName="descricao" placeholder="Exemplo: Salário" autocomplete="off" />
+        </label>
+
+        <label>
+          Valor
+          <input type="number" formControlName="valor" placeholder="0,00" min="0.01" step="0.01" inputmode="decimal" />
+        </label>
+
+        <label>
+          Data
+          <input type="date" formControlName="data_referencia" />
+        </label>
+
+        @if (errorMessage()) {
+          <p class="form-message form-message--error" role="alert">{{ errorMessage() }}</p>
+        }
+
+        @if (successMessage()) {
+          <p class="form-message form-message--success" role="status">{{ successMessage() }}</p>
+        }
+
+        <button type="submit" class="primary-button" [disabled]="saving()">
+          {{ saving() ? 'Salvando...' : 'Salvar entrada' }}
+        </button>
+      </form>
+    </article>
+
+    <article class="finance-panel finance-panel--wide">
+      <div class="panel-heading">
+        <div>
+          <span class="finance-kicker">Lista</span>
+          <h3>Entradas cadastradas</h3>
+        </div>
+        <a routerLink="/dashboard" class="primary-link">Voltar ao resumo</a>
+      </div>
+
+      @if (loading()) {
+        <p class="finance-status" role="status">Carregando entradas...</p>
+      } @else if (entradas().length > 0) {
+        <div class="table-wrap">
+          <table class="finance-table">
+            <thead>
+              <tr>
+                <th>Descrição</th>
+                <th>Data</th>
+                <th class="number-cell">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (entrada of entradas(); track entrada.id) {
+                <tr>
+                  <td>{{ entrada.descricao }}</td>
+                  <td>{{ entrada.data_referencia | date: 'dd/MM/yyyy' }}</td>
+                  <td class="number-cell">
+                    {{ entrada.valor | secureCurrency }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="empty-state">Nenhuma entrada cadastrada ainda. Use o formulário ao lado.</p>
+      }
+    </article>
+  </section>
 </section>

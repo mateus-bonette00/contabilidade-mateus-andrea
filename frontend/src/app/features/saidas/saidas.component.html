@@ -1,4 +1,90 @@
-<section class="saidas">
-  <h2>Saídas</h2>
-  <p>Gastos e despesas do mês.</p>
+<section class="finance-page">
+  <div class="finance-hero finance-hero--expense">
+    <div class="finance-hero__copy">
+      <p class="finance-kicker">Saídas</p>
+      <h2>Cadastre todo dinheiro que saiu.</h2>
+      <p>Exemplo: mercado, conta de luz, aluguel, remédio, pix enviado ou qualquer gasto do mês.</p>
+    </div>
+
+    <article class="mini-total-card mini-total-card--expense">
+      <span>Total de saídas</span>
+      <strong>{{ totalSaidas() | secureCurrency }}</strong>
+      <small>{{ saidas().length }} registro(s)</small>
+    </article>
+  </div>
+
+  <section class="finance-grid">
+    <article class="finance-panel">
+      <span class="finance-kicker">Novo cadastro</span>
+      <h3>Adicionar saída</h3>
+
+      <form class="finance-form" [formGroup]="form" (ngSubmit)="cadastrar()">
+        <label>
+          Descrição
+          <input type="text" formControlName="descricao" placeholder="Exemplo: Mercado" autocomplete="off" />
+        </label>
+
+        <label>
+          Valor
+          <input type="number" formControlName="valor" placeholder="0,00" min="0.01" step="0.01" inputmode="decimal" />
+        </label>
+
+        <label>
+          Data
+          <input type="date" formControlName="data_referencia" />
+        </label>
+
+        @if (errorMessage()) {
+          <p class="form-message form-message--error" role="alert">{{ errorMessage() }}</p>
+        }
+
+        @if (successMessage()) {
+          <p class="form-message form-message--success" role="status">{{ successMessage() }}</p>
+        }
+
+        <button type="submit" class="primary-button primary-button--expense" [disabled]="saving()">
+          {{ saving() ? 'Salvando...' : 'Salvar saída' }}
+        </button>
+      </form>
+    </article>
+
+    <article class="finance-panel finance-panel--wide">
+      <div class="panel-heading">
+        <div>
+          <span class="finance-kicker">Lista</span>
+          <h3>Saídas cadastradas</h3>
+        </div>
+        <a routerLink="/dashboard" class="primary-link">Voltar ao resumo</a>
+      </div>
+
+      @if (loading()) {
+        <p class="finance-status" role="status">Carregando saídas...</p>
+      } @else if (saidas().length > 0) {
+        <div class="table-wrap">
+          <table class="finance-table">
+            <thead>
+              <tr>
+                <th>Descrição</th>
+                <th>Data</th>
+                <th class="number-cell">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (saida of saidas(); track saida.id) {
+                <tr>
+                  <td>{{ saida.descricao }}</td>
+                  <td>{{ saida.data_referencia | date: 'dd/MM/yyyy' }}</td>
+                  <td class="number-cell">
+                    {{ saida.valor | secureCurrency }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <p class="empty-state">Nenhuma saída cadastrada ainda. Use o formulário ao lado.</p>
+      }
+    </article>
+  </section>
 </section>
