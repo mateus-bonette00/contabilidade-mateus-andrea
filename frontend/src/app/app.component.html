@@ -1,0 +1,22 @@
+@if (showShell()) {
+  <div class="app-shell">
+    <header class="app-header">
+      <div class="app-header-top">
+        <h1>FamilyMoney</h1>
+        <p class="app-user">Olá, {{ usuarioNome() }}</p>
+      </div>
+      <nav>
+        <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Início</a>
+        <a routerLink="/entradas" routerLinkActive="active">Entradas</a>
+        <a routerLink="/saidas" routerLinkActive="active">Saídas</a>
+        <button type="button" class="logout-button" (click)="sair()">Sair</button>
+      </nav>
+    </header>
+
+    <main class="app-main">
+      <router-outlet />
+    </main>
+  </div>
+} @else {
+  <router-outlet />
+}

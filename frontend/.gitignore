@@ -1,0 +1,5 @@
+# =============================================================================
+# Frontend — use o .gitignore da RAIZ do projeto (../.gitignore)
+# =============================================================================
+# Este arquivo existe só para o Angular não duplicar regras.
+# Todas as exclusões estão centralizadas na raiz.

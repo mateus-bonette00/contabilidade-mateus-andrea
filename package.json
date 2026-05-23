@@ -1,0 +1,15 @@
+{
+  "name": "contabilidade-mateus-andrea",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Controle financeiro simples - entradas e saídas",
+  "scripts": {
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "dev:api": "npm run dev --prefix backend",
+    "dev:web": "npm start --prefix frontend",
+    "build:api": "npm run build --prefix backend",
+    "build:web": "npm run build --prefix frontend",
+    "db:migrate": "PGPASSWORD=contabilidade psql -h localhost -U contabilidade -d contabilidade -f database/migrate-usuarios.sql"
+  }
+}

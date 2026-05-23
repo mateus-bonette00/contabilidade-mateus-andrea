@@ -1,0 +1,39 @@
+<div class="login-page">
+  <header class="login-brand">
+    <img src="/logo-FamilyMoney.png" alt="FamilyMoney" class="login-logo" />
+  </header>
+
+  <section class="login-card" aria-label="Login com PIN">
+    <h1 class="login-title">DIGITE SEU PIN</h1>
+
+    <div class="pin-row" role="group" aria-label="Campos do PIN">
+      @for (digit of digits(); track $index) {
+        <input
+          #pinInput
+          class="pin-box"
+          type="password"
+          inputmode="numeric"
+          maxlength="1"
+          autocomplete="off"
+          [value]="digit"
+          [attr.aria-label]="'Dígito ' + ($index + 1)"
+          (input)="onDigitInput($index, $event)"
+          (keydown)="onDigitKeydown($index, $event)"
+        />
+      }
+    </div>
+
+    @if (errorMessage()) {
+      <p class="login-error" role="alert">{{ errorMessage() }}</p>
+    }
+
+    <button
+      type="button"
+      class="login-button"
+      [disabled]="loading()"
+      (click)="entrar()"
+    >
+      {{ loading() ? 'ENTRANDO...' : 'ENTRAR' }}
+    </button>
+  </section>
+</div>
