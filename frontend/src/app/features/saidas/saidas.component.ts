@@ -1,90 +1,83 @@
-import { DatePipe } from '@angular/common';
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { SecureCurrencyPipe } from '../../pipes/secure-currency.pipe';
-import { SaidaRegistro, SaidasService } from '../../services/saidas.service';
+import { Saida } from '../../models/saida.model';
+import { SaidasService } from '../../services/saidas.service';
+import {
+  mesAnoAtual,
+  mesAnteriorMesAno,
+  parseDataReferencia,
+  podeAvancarMes,
+  proximoMesAno,
+} from '../../utils/data-local';
 
-function hojeInput(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function somarSaidas(registros: SaidaRegistro[]): number {
-  const centavos = registros.reduce((total, registro) => total + Math.round(Number(registro.valor) * 100), 0);
-  return centavos / 100;
-}
+const MESES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
 @Component({
   selector: 'app-saidas',
   standalone: true,
-  imports: [ReactiveFormsModule, RouterLink, SecureCurrencyPipe, DatePipe],
+  imports: [RouterLink],
   templateUrl: './saidas.component.html',
   styleUrl: './saidas.component.scss',
 })
 export class SaidasComponent implements OnInit {
-  private readonly formBuilder = inject(NonNullableFormBuilder);
-  private readonly saidasService = inject(SaidasService);
+  private readonly service = inject(SaidasService);
 
-  readonly loading = signal(true);
-  readonly saving = signal(false);
-  readonly errorMessage = signal('');
-  readonly successMessage = signal('');
-  readonly saidas = signal<SaidaRegistro[]>([]);
-  readonly totalSaidas = computed(() => somarSaidas(this.saidas()));
+  readonly carregando = signal(true);
+  readonly saidas = signal<Saida[]>([]);
+  readonly mesAtual = signal(mesAnoAtual());
 
-  readonly form = this.formBuilder.group({
-    descricao: ['', [Validators.required, Validators.minLength(2)]],
-    valor: [0, [Validators.required, Validators.min(0.01)]],
-    data_referencia: [hojeInput(), Validators.required],
+  readonly podeIrMesSeguinte = computed(() => {
+    const { mes, ano } = this.mesAtual();
+    return podeAvancarMes(mes, ano);
   });
 
+  readonly mesLabel = computed(() => {
+    const { mes, ano } = this.mesAtual();
+    return `${MESES[mes]} ${ano}`;
+  });
+
+  readonly saidasDoMes = computed(() => {
+    const { mes, ano } = this.mesAtual();
+    return this.saidas()
+      .filter(s => {
+        const d = parseDataReferencia(s.data_referencia);
+        return d.getMonth() === mes && d.getFullYear() === ano;
+      })
+      .sort((a, b) => b.data_referencia.localeCompare(a.data_referencia));
+  });
+
+  readonly total = computed(() =>
+    this.saidasDoMes().reduce((acc, s) => acc + Number(s.valor), 0)
+  );
+
   ngOnInit(): void {
-    this.carregarSaidas();
+    this.service.listar().subscribe({
+      next: (saidas) => { this.saidas.set(saidas); this.carregando.set(false); },
+      error: () => this.carregando.set(false),
+    });
   }
 
-  cadastrar(): void {
-    this.errorMessage.set('');
-    this.successMessage.set('');
+  mesAnterior(): void {
+    const { mes, ano } = this.mesAtual();
+    this.mesAtual.set(mesAnteriorMesAno(mes, ano));
+  }
 
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      this.errorMessage.set('Preencha descrição, valor e data para cadastrar a saída.');
+  mesSeguinte(): void {
+    if (!this.podeIrMesSeguinte()) {
       return;
     }
 
-    this.saving.set(true);
-    const payload = {
-      ...this.form.getRawValue(),
-      descricao: this.form.controls.descricao.value.trim(),
-      valor: Number(this.form.controls.valor.value),
-    };
-
-    this.saidasService.cadastrar(payload).subscribe({
-      next: (saida) => {
-        this.saidas.update((saidas) => [saida, ...saidas]);
-        this.form.reset({ descricao: '', valor: 0, data_referencia: hojeInput() });
-        this.successMessage.set('Saída cadastrada com sucesso.');
-        this.saving.set(false);
-      },
-      error: () => {
-        this.errorMessage.set('Não foi possível cadastrar a saída. Tente novamente.');
-        this.saving.set(false);
-      },
-    });
+    const { mes, ano } = this.mesAtual();
+    this.mesAtual.set(proximoMesAno(mes, ano));
   }
 
-  private carregarSaidas(): void {
-    this.loading.set(true);
-
-    this.saidasService.listar().subscribe({
-      next: (saidas) => {
-        this.saidas.set(saidas);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.errorMessage.set('Não foi possível carregar suas saídas.');
-        this.loading.set(false);
-      },
-    });
+  formatarValor(valor: number | string): string {
+    return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   }
+
+  formatarData(data: string): string {
+    return parseDataReferencia(data).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  trackById(_: number, s: Saida): string { return s.id; }
 }

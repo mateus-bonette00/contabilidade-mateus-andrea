@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, QueryList, ViewChildren, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, QueryList, ViewChildren, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
@@ -10,20 +10,47 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent implements AfterViewInit {
+export class LoginComponent implements OnInit, AfterViewInit {
   @ViewChildren('pinInput') pinInputs!: QueryList<ElementRef<HTMLInputElement>>;
 
+  readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
+  readonly modo = signal<'login' | 'cadastro'>('login');
   readonly digits = signal(['', '', '', '']);
   readonly errorMessage = signal('');
   readonly loading = signal(false);
 
-  constructor(
-    private readonly auth: AuthService,
-    private readonly router: Router,
-  ) {}
+  readonly nomeCadastro = signal('');
+  readonly sobrenomeCadastro = signal('');
+  readonly emailCadastro = signal('');
+  readonly pinCadastro = signal('');
+  readonly pinConfirmacaoCadastro = signal('');
+
+  readonly titulo = computed(() => this.modo() === 'login' ? 'Digite seu PIN' : 'Criar cadastro');
+  readonly subtitulo = computed(() =>
+    this.modo() === 'login'
+      ? 'Acesse sua conta com os 4 números cadastrados.'
+      : 'Preencha nome, sobrenome, e-mail e PIN para criar sua conta.'
+  );
+
+  ngOnInit(): void {
+    if (this.auth.isLoggedIn()) {
+      this.router.navigate(['/dashboard']);
+    }
+  }
 
   ngAfterViewInit(): void {
-    setTimeout(() => this.pinInputs.first?.nativeElement.focus());
+    this.focarPrimeiroCampoLogin();
+  }
+
+  alternarModo(modo: 'login' | 'cadastro'): void {
+    this.modo.set(modo);
+    this.errorMessage.set('');
+
+    if (modo === 'login') {
+      this.focarPrimeiroCampoLogin();
+    }
   }
 
   onDigitInput(index: number, event: Event): void {
@@ -102,14 +129,73 @@ export class LoginComponent implements AfterViewInit {
     this.auth.login(pin).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigateByUrl('/dashboard');
+        this.resetPinFields();
+        this.router.navigate(['/dashboard']);
       },
-      error: () => {
+      error: (erro) => {
         this.loading.set(false);
-        this.errorMessage.set('PIN incorreto. Tente novamente.');
+        this.errorMessage.set(erro?.error?.message ?? 'PIN incorreto. Tente novamente.');
         this.digits.set(['', '', '', '']);
-        setTimeout(() => this.pinInputs.first?.nativeElement.focus());
+        this.focarPrimeiroCampoLogin();
       },
     });
+  }
+
+  cadastrar(): void {
+    const nome = this.nomeCadastro().trim();
+    const sobrenome = this.sobrenomeCadastro().trim();
+    const email = this.emailCadastro().trim().toLowerCase();
+    const pin = this.pinCadastro().trim();
+    const pinConfirmacao = this.pinConfirmacaoCadastro().trim();
+
+    if (!nome || !sobrenome || !email || !pin || !pinConfirmacao) {
+      this.errorMessage.set('Preencha todos os campos para cadastrar.');
+      return;
+    }
+
+    if (!/^\d{4}$/.test(pin) || !/^\d{4}$/.test(pinConfirmacao)) {
+      this.errorMessage.set('PIN e confirmação devem ter 4 números.');
+      return;
+    }
+
+    if (pin !== pinConfirmacao) {
+      this.errorMessage.set('A confirmação do PIN não confere.');
+      return;
+    }
+
+    this.loading.set(true);
+    this.errorMessage.set('');
+
+    this.auth.cadastrar({ nome, sobrenome, email, pin, pinConfirmacao }).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.router.navigate(['/dashboard']);
+      },
+      error: (erro) => {
+        this.loading.set(false);
+        this.errorMessage.set(erro?.error?.message ?? 'Não foi possível criar seu cadastro.');
+      },
+    });
+  }
+
+  atualizarPinCadastro(valor: string): void {
+    this.pinCadastro.set(this.extrairPin(valor));
+  }
+
+  atualizarPinConfirmacaoCadastro(valor: string): void {
+    this.pinConfirmacaoCadastro.set(this.extrairPin(valor));
+  }
+
+  private resetPinFields(): void {
+    this.digits.set(['', '', '', '']);
+    this.errorMessage.set('');
+  }
+
+  private focarPrimeiroCampoLogin(): void {
+    setTimeout(() => this.pinInputs?.first?.nativeElement.focus());
+  }
+
+  private extrairPin(valor: string): string {
+    return valor.replace(/\D/g, '').slice(0, 4);
   }
 }

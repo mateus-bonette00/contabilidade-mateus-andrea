@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { ApiService } from './api.service';
-import { LoginResponse, Usuario } from '../models/usuario.model';
+import { AtualizarPerfilPayload, CadastroPayload, LoginResponse, Usuario } from '../models/usuario.model';
 
 const STORAGE_TOKEN = 'fm_token';
 const STORAGE_USUARIO = 'fm_usuario';
@@ -32,15 +32,21 @@ export class AuthService {
       .pipe(tap((response) => this.persistSession(response)));
   }
 
-  logout(): void {
-    sessionStorage.removeItem(STORAGE_TOKEN);
-    sessionStorage.removeItem(STORAGE_USUARIO);
-    this.usuarioSignal.set(null);
+  cadastrar(payload: CadastroPayload): Observable<LoginResponse> {
+    return this.http
+      .post<LoginResponse>(`${this.api.baseUrl}/auth/cadastro`, payload)
+      .pipe(tap((response) => this.persistSession(response)));
   }
 
-  atualizarNome(nome: string, pinAtual: string): Observable<LoginResponse> {
+  carregarPerfil(): Observable<{ usuario: Usuario }> {
     return this.http
-      .patch<LoginResponse>(`${this.api.baseUrl}/auth/nome`, { nome, pinAtual })
+      .get<{ usuario: Usuario }>(`${this.api.baseUrl}/auth/me`)
+      .pipe(tap((response) => this.usuarioSignal.set(response.usuario)));
+  }
+
+  atualizarPerfil(payload: AtualizarPerfilPayload): Observable<LoginResponse> {
+    return this.http
+      .patch<LoginResponse>(`${this.api.baseUrl}/auth/perfil`, payload)
       .pipe(tap((response) => this.persistSession(response)));
   }
 
@@ -50,6 +56,12 @@ export class AuthService {
       pinNovo,
       pinConfirmacao,
     });
+  }
+
+  logout(): void {
+    sessionStorage.removeItem(STORAGE_TOKEN);
+    sessionStorage.removeItem(STORAGE_USUARIO);
+    this.usuarioSignal.set(null);
   }
 
   private persistSession(response: LoginResponse): void {

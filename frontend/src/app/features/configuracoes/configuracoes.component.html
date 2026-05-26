@@ -1,0 +1,118 @@
+<div class="page">
+  <header class="page-header">
+    <h1>Configurações do Perfil</h1>
+    <p>Edite seus dados, foto e PIN da conta.</p>
+  </header>
+
+  @if (carregando()) {
+    <div class="loading">Carregando...</div>
+  } @else {
+    <section class="card">
+      <h2>Meu Perfil</h2>
+
+      <div class="foto-box">
+        <div class="avatar-preview">
+          @if (fotoUrl) {
+            <img [src]="fotoUrl" alt="Foto do usuário" />
+          } @else {
+            <span>{{ (nome || 'U').charAt(0).toUpperCase() }}</span>
+          }
+        </div>
+
+        <div class="foto-actions">
+          <label class="btn btn-outline" for="foto">Adicionar/Trocar foto</label>
+          <input id="foto" type="file" accept="image/*" (change)="onFotoSelecionada($event)" />
+          <button type="button" class="btn btn-light" (click)="removerFoto()">Remover foto</button>
+        </div>
+      </div>
+
+      <form class="form" (ngSubmit)="salvarPerfil()">
+        <div class="grid">
+          <label class="field">
+            <span>Nome</span>
+            <input type="text" [(ngModel)]="nome" name="nome" maxlength="100" />
+          </label>
+
+          <label class="field">
+            <span>Sobrenome</span>
+            <input type="text" [(ngModel)]="sobrenome" name="sobrenome" maxlength="100" />
+          </label>
+
+          <label class="field field-full">
+            <span>E-mail</span>
+            <input type="email" [(ngModel)]="email" name="email" maxlength="160" />
+          </label>
+
+          <label class="field field-full">
+            <span>PIN atual (obrigatório para salvar)</span>
+            <input
+              type="password"
+              inputmode="numeric"
+              maxlength="4"
+              [(ngModel)]="pinAtualPerfil"
+              name="pinAtualPerfil"
+            />
+          </label>
+        </div>
+
+        @if (erroPerfil()) {
+          <p class="msg msg-erro">{{ erroPerfil() }}</p>
+        }
+
+        @if (sucessoPerfil()) {
+          <p class="msg msg-ok">{{ sucessoPerfil() }}</p>
+        }
+
+        <button class="btn btn-primary" type="submit" [disabled]="salvandoPerfil()">
+          {{ salvandoPerfil() ? 'Salvando...' : 'Salvar perfil' }}
+        </button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Trocar PIN</h2>
+      <form class="form" (ngSubmit)="salvarPin()">
+        <div class="grid">
+          <label class="field">
+            <span>PIN atual</span>
+            <input type="password" inputmode="numeric" maxlength="4" [(ngModel)]="pinAtual" name="pinAtual" />
+          </label>
+
+          <label class="field">
+            <span>Novo PIN</span>
+            <input type="password" inputmode="numeric" maxlength="4" [(ngModel)]="pinNovo" name="pinNovo" />
+          </label>
+
+          <label class="field field-full">
+            <span>Confirmar novo PIN</span>
+            <input
+              type="password"
+              inputmode="numeric"
+              maxlength="4"
+              [(ngModel)]="pinConfirmacao"
+              name="pinConfirmacao"
+            />
+          </label>
+        </div>
+
+        @if (erroPin()) {
+          <p class="msg msg-erro">{{ erroPin() }}</p>
+        }
+
+        @if (sucessoPin()) {
+          <p class="msg msg-ok">{{ sucessoPin() }}</p>
+        }
+
+        <button class="btn btn-primary" type="submit" [disabled]="salvandoPin()">
+          {{ salvandoPin() ? 'Atualizando...' : 'Atualizar PIN' }}
+        </button>
+      </form>
+    </section>
+
+    <section class="card card-actions">
+      <h2>Mais ações</h2>
+      <p>Você também pode encerrar sua sessão por aqui.</p>
+      <button type="button" class="btn btn-danger" (click)="sairDaConta()">Sair da conta</button>
+    </section>
+  }
+</div>

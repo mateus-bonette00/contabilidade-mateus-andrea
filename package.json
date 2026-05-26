@@ -4,10 +4,11 @@
   "private": true,
   "description": "Controle financeiro simples - entradas e saídas",
   "scripts": {
-    "dev:all": "npm run db:up && npm run db:seed-users && (npm run dev:api & npm run dev:web & wait)",
+    "dev:all": "npm run db:up && npm run db:setup && npm run db:seed-users && (npm run dev:api & npm run dev:web & wait)",
     "kill:4200": "bash -lc \"lsof -ti tcp:4200 | xargs -r kill -9\"",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
+    "db:setup": "npm run db:setup --prefix backend",
     "dev:api": "npm run dev --prefix backend",
     "dev:web": "npm run kill:4200 && npm start --prefix frontend -- --port 4200",
     "build:api": "npm run build --prefix backend",

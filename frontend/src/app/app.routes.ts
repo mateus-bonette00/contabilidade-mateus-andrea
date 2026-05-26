@@ -1,33 +1,36 @@
 import { Routes } from '@angular/router';
-import { authGuard, loginGuard } from './core/auth.guard';
-import { DashboardComponent } from './features/dashboard/dashboard.component';
-import { EntradasComponent } from './features/entradas/entradas.component';
 import { LoginComponent } from './features/login/login.component';
-import { PerfilComponent } from './features/perfil/perfil.component';
-import { SaidasComponent } from './features/saidas/saidas.component';
+import { authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
-  { path: 'login', component: LoginComponent, canActivate: [loginGuard] },
-  { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+  { path: 'login', component: LoginComponent },
   {
-    path: 'dashboard',
-    component: DashboardComponent,
+    path: '',
     canActivate: [authGuard],
+    loadComponent: () => import('./features/shell/shell.component').then(m => m.ShellComponent),
+    children: [
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./features/dashboard/dashboard.component').then(m => m.DashboardComponent),
+      },
+      {
+        path: 'entradas',
+        loadComponent: () => import('./features/entradas/entradas.component').then(m => m.EntradasComponent),
+      },
+      {
+        path: 'saidas',
+        loadComponent: () => import('./features/saidas/saidas.component').then(m => m.SaidasComponent),
+      },
+      {
+        path: 'lancamento/:tipo',
+        loadComponent: () => import('./features/lancamento/lancamento.component').then(m => m.LancamentoComponent),
+      },
+      {
+        path: 'configuracoes',
+        loadComponent: () => import('./features/configuracoes/configuracoes.component').then(m => m.ConfiguracoesComponent),
+      },
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+    ],
   },
-  {
-    path: 'entradas',
-    component: EntradasComponent,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'saidas',
-    component: SaidasComponent,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'perfil',
-    component: PerfilComponent,
-    canActivate: [authGuard],
-  },
-  { path: '**', redirectTo: 'login' },
+  { path: '**', redirectTo: '' },
 ];

@@ -1,3 +1,234 @@
-:host {
-  display: block;
+:host { display: block; }
+
+.page {
+  width: 100%;
+  max-width: 800px;
+  margin-inline: auto;
+  min-width: 0;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #173528;
+
+  svg { color: #00b96b; }
+}
+
+.btn-add {
+  padding: 0.62rem 1.1rem;
+  border-radius: 10px;
+  background: #00b96b;
+  color: #ffffff;
+  font-size: 0.88rem;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 6px 16px rgba(0, 185, 107, 0.22);
+  transition: background 0.14s ease, transform 0.1s ease;
+
+  &:hover { background: #009f5c; transform: translateY(-1px); }
+  &:active { transform: translateY(0); }
+}
+
+.mes-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.mes-label {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #173528;
+  min-width: 140px;
+  text-align: center;
+}
+
+.mes-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #cddbd3;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #173528;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.14s ease, border-color 0.14s ease;
+
+  &:hover:not(:disabled) { background: #f0faf5; border-color: #00b96b; }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.spinner {
+  width: 38px;
+  height: 38px;
+  border: 3px solid rgba(0, 185, 107, 0.18);
+  border-top-color: #00b96b;
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.total-card {
+  background: linear-gradient(135deg, #00c471 0%, #009a55 100%);
+  border-radius: 16px;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  box-shadow: 0 8px 26px rgba(0, 185, 107, 0.25);
+}
+
+.total-label {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.78);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.total-count {
+  margin: 0.2rem 0 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.total-valor {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 3rem 1.5rem;
+  background: #ffffff;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(17, 73, 49, 0.06);
+  border: 1px solid rgba(20, 111, 72, 0.08);
+
+  p { margin: 0; color: #60736a; font-size: 0.92rem; font-weight: 500; }
+}
+
+.table-wrap {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 22px rgba(17, 73, 49, 0.08);
+  border: 1px solid rgba(20, 111, 72, 0.08);
+  overflow-x: auto;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 540px;
+
+  th {
+    padding: 0.88rem 1.2rem;
+    text-align: left;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #60736a;
+    background: #f1fbf6;
+    border-bottom: 1px solid rgba(20, 111, 72, 0.08);
+  }
+
+  td {
+    padding: 0.95rem 1.2rem;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #173528;
+    border-bottom: 1px solid rgba(20, 111, 72, 0.06);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  tbody tr:hover {
+    background: #f7fbf8;
+  }
+}
+
+.th-valor,
+.td-valor {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.td-valor {
+  color: #009f5c;
+}
+
+@media (max-width: 767px) {
+  .page-header {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .page-title {
+    font-size: clamp(1.2rem, 4.5vw, 1.45rem);
+  }
+
+  .mes-nav {
+    justify-content: center;
+  }
+
+  .mes-label {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .btn-add {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .total-card { flex-direction: column; align-items: flex-start; gap: 0.4rem; }
+  .total-valor { font-size: 1.4rem; white-space: normal; overflow-wrap: anywhere; }
 }

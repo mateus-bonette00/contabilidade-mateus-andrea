@@ -1,33 +1,19 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-
-export interface SaidaRegistro {
-  id: string;
-  descricao: string;
-  valor: string;
-  data_referencia: string;
-}
-
-export interface SaidaPayload {
-  descricao: string;
-  valor: number;
-  data_referencia: string;
-}
+import { Saida, NovaSaida } from '../models/saida.model';
 
 @Injectable({ providedIn: 'root' })
 export class SaidasService {
-  constructor(
-    private readonly http: HttpClient,
-    private readonly api: ApiService,
-  ) {}
+  private readonly http = inject(HttpClient);
+  private readonly api = inject(ApiService);
 
-  listar(): Observable<SaidaRegistro[]> {
-    return this.http.get<SaidaRegistro[]>(`${this.api.baseUrl}/saidas`);
+  listar(): Observable<Saida[]> {
+    return this.http.get<Saida[]>(`${this.api.baseUrl}/saidas`);
   }
 
-  cadastrar(payload: SaidaPayload): Observable<SaidaRegistro> {
-    return this.http.post<SaidaRegistro>(`${this.api.baseUrl}/saidas`, payload);
+  criar(saida: NovaSaida): Observable<Saida> {
+    return this.http.post<Saida>(`${this.api.baseUrl}/saidas`, saida);
   }
 }

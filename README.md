@@ -28,6 +28,7 @@ npm run dev:all
 
 Esse comando faz tudo:
 - sobe o PostgreSQL no Docker (`5433`)
+- aplica o schema do banco automaticamente
 - cria/atualiza os usuários (`Mateus` e `Andréa`)
 - sobe backend e frontend juntos
 - mata automaticamente qualquer processo antigo na porta `4200` e sobe o frontend de novo na `4200`
@@ -50,6 +51,7 @@ Se você já tem um PostgreSQL local na porta `5432`, o Docker agora sobe na por
 
 ```bash
 cp backend/.env.example backend/.env
+npm run db:setup
 npm run dev:api
 ```
 

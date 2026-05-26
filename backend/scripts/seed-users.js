@@ -22,11 +22,15 @@ async function main() {
   const usuarios = [
     {
       nome: 'Mateus',
+      sobrenome: 'Silva',
+      email: 'mateus@familymoney.app',
       pin: '0708',
       salt: 'mateus-salt-v1',
     },
     {
       nome: 'Andréa',
+      sobrenome: 'Silva',
+      email: 'andrea@familymoney.app',
       pin: '2506',
       salt: 'andrea-salt-v1',
     },
@@ -41,12 +45,43 @@ async function main() {
     await client.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        nome VARCHAR(100) NOT NULL UNIQUE,
+        nome VARCHAR(100) NOT NULL,
+        sobrenome VARCHAR(100) NOT NULL,
+        email VARCHAR(160) NOT NULL UNIQUE,
+        foto_url TEXT,
         pin_hash TEXT NOT NULL,
         pin_salt TEXT NOT NULL,
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
+
+    await client.query('ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS sobrenome VARCHAR(100)');
+    await client.query('ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS email VARCHAR(160)');
+    await client.query('ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS foto_url TEXT');
+    await client.query('ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()');
+
+    await client.query(`
+      UPDATE usuarios
+      SET sobrenome = 'Silva'
+      WHERE sobrenome IS NULL OR trim(sobrenome) = ''
+    `);
+
+    await client.query(`
+      UPDATE usuarios
+      SET email = CONCAT(
+        lower(regexp_replace(nome, '[^a-zA-Z0-9]+', '', 'g')),
+        '-',
+        substr(id::text, 1, 6),
+        '@familymoney.local'
+      )
+      WHERE email IS NULL OR trim(email) = ''
+    `);
+
+    await client.query('ALTER TABLE usuarios ALTER COLUMN sobrenome SET NOT NULL');
+    await client.query('ALTER TABLE usuarios ALTER COLUMN email SET NOT NULL');
+    await client.query('ALTER TABLE usuarios DROP CONSTRAINT IF EXISTS usuarios_nome_key');
+    await client.query('CREATE UNIQUE INDEX IF NOT EXISTS usuarios_email_key ON usuarios (email)');
 
     const andreaAntigaResult = await client.query(
       'SELECT id FROM usuarios WHERE nome = $1 LIMIT 1',
@@ -90,12 +125,17 @@ async function main() {
         `
           UPDATE usuarios
           SET nome = $1,
-              pin_hash = $2,
-              pin_salt = $3
-          WHERE id = $4
+              sobrenome = $2,
+              email = $3,
+              pin_hash = $4,
+              pin_salt = $5,
+              updated_at = NOW()
+          WHERE id = $6
         `,
         [
           'Andréa',
+          'Silva',
+          'andrea@familymoney.app',
           hashPin('2506', 'andrea-salt-v1'),
           'andrea-salt-v1',
           andreaAntiga.id,
@@ -106,13 +146,16 @@ async function main() {
     for (const usuario of usuarios) {
       await client.query(
         `
-          INSERT INTO usuarios (nome, pin_hash, pin_salt)
-          VALUES ($1, $2, $3)
-          ON CONFLICT (nome) DO UPDATE
-          SET pin_hash = EXCLUDED.pin_hash,
-              pin_salt = EXCLUDED.pin_salt
+          INSERT INTO usuarios (nome, sobrenome, email, pin_hash, pin_salt)
+          VALUES ($1, $2, $3, $4, $5)
+          ON CONFLICT (email) DO UPDATE
+          SET nome = EXCLUDED.nome,
+              sobrenome = EXCLUDED.sobrenome,
+              pin_hash = EXCLUDED.pin_hash,
+              pin_salt = EXCLUDED.pin_salt,
+              updated_at = NOW()
         `,
-        [usuario.nome, hashPin(usuario.pin, usuario.salt), usuario.salt],
+        [usuario.nome, usuario.sobrenome, usuario.email, hashPin(usuario.pin, usuario.salt), usuario.salt],
       );
     }
 
