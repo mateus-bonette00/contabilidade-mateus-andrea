@@ -13,6 +13,7 @@
   --line: rgba(20, 111, 72, 0.12);
   --danger: #c73535;
   width: min(100%, 1220px);
+  margin-inline: auto;
   position: relative;
   isolation: isolate;
   color: var(--ink);
@@ -301,24 +302,9 @@
 }
 
 .card--saldo,
-.card--save {
-  grid-column: span 2;
-}
-
-.cards-row-movimentos {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
+.card--save,
 .card--movimento {
-  flex: 1 1 320px;
-  width: 100%;
-  max-width: 420px;
-  min-width: 280px;
+  grid-column: span 2;
 }
 
 .card--glass-green {
@@ -996,7 +982,8 @@
   }
 
   .card--saldo,
-  .card--save {
+  .card--save,
+  .card--movimento {
     grid-column: span 1;
   }
 
@@ -1045,18 +1032,9 @@
   }
 
   .card--saldo,
-  .card--save {
-    grid-column: span 1;
-  }
-
-  .cards-row-movimentos {
-    flex-direction: column;
-    align-items: center;
-  }
-
+  .card--save,
   .card--movimento {
-    max-width: 100%;
-    min-width: 0;
+    grid-column: span 1;
   }
 
   .card {

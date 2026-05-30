@@ -3,6 +3,8 @@ export interface Entrada {
   descricao: string;
   valor: string;
   data_referencia: string;
+  origem?: 'manual' | 'open_finance';
+  instituicao_nome?: string | null;
   created_at: string;
   updated_at: string;
 }

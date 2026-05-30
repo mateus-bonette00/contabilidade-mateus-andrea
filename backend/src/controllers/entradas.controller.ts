@@ -10,7 +10,7 @@ export async function listEntradas(req: AuthenticatedRequest, res: Response): Pr
   }
 
   const result = await pool.query(
-    `SELECT id, descricao, valor::text, data_referencia::text, created_at, updated_at
+    `SELECT id, descricao, valor::text, data_referencia::text, origem, instituicao_nome, created_at, updated_at
      FROM entradas
      WHERE usuario_id = $1
      ORDER BY data_referencia DESC, created_at DESC`,
@@ -48,7 +48,7 @@ export async function createEntrada(req: AuthenticatedRequest, res: Response): P
   const result = await pool.query(
     `INSERT INTO entradas (usuario_id, descricao, valor, data_referencia)
      VALUES ($1, $2, $3, $4)
-     RETURNING id, descricao, valor::text, data_referencia::text, created_at, updated_at`,
+     RETURNING id, descricao, valor::text, data_referencia::text, origem, instituicao_nome, created_at, updated_at`,
     [req.usuarioId, descricao, valor, dataReferencia],
   );
 

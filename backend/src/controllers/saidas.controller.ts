@@ -10,7 +10,7 @@ export async function listSaidas(req: AuthenticatedRequest, res: Response): Prom
   }
 
   const result = await pool.query(
-    `SELECT id, descricao, valor::text, data_referencia::text, created_at, updated_at
+    `SELECT id, descricao, valor::text, data_referencia::text, origem, instituicao_nome, created_at, updated_at
      FROM saidas
      WHERE usuario_id = $1
      ORDER BY data_referencia DESC, created_at DESC`,
@@ -48,7 +48,7 @@ export async function createSaida(req: AuthenticatedRequest, res: Response): Pro
   const result = await pool.query(
     `INSERT INTO saidas (usuario_id, descricao, valor, data_referencia)
      VALUES ($1, $2, $3, $4)
-     RETURNING id, descricao, valor::text, data_referencia::text, created_at, updated_at`,
+     RETURNING id, descricao, valor::text, data_referencia::text, origem, instituicao_nome, created_at, updated_at`,
     [req.usuarioId, descricao, valor, dataReferencia],
   );
 

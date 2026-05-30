@@ -13,6 +13,9 @@
     "dev:web": "npm run kill:4200 && npm start --prefix frontend -- --port 4200",
     "build:api": "npm run build --prefix backend",
     "build:web": "npm run build --prefix frontend",
+    "deploy": "bash ./deploy.sh",
+    "deploy:bonette": "bash scripts/deploy-bonette.sh",
+    "tunnel:bonette": "bash scripts/server-tunnel.sh",
     "db:migrate": "PGPASSWORD=contabilidade psql -h localhost -p 5433 -U contabilidade -d contabilidade -f database/migrate-usuarios.sql",
     "db:seed-users": "npm run seed:users --prefix backend"
   }

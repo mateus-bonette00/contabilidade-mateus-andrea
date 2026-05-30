@@ -37,6 +37,42 @@ CREATE UNIQUE INDEX IF NOT EXISTS usuarios_email_key ON usuarios (email);
 ALTER TABLE entradas ADD COLUMN IF NOT EXISTS usuario_id UUID REFERENCES usuarios (id) ON DELETE CASCADE;
 ALTER TABLE saidas ADD COLUMN IF NOT EXISTS usuario_id UUID REFERENCES usuarios (id) ON DELETE CASCADE;
 
+CREATE TABLE IF NOT EXISTS conexoes_bancarias (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  usuario_id UUID NOT NULL REFERENCES usuarios (id) ON DELETE CASCADE,
+  instituicao_codigo VARCHAR(40) NOT NULL,
+  instituicao_nome VARCHAR(120) NOT NULL,
+  provedor VARCHAR(32) NOT NULL DEFAULT 'pluggy',
+  provedor_item_id VARCHAR(120),
+  status VARCHAR(24) NOT NULL DEFAULT 'ativa'
+    CHECK (status IN ('ativa', 'erro', 'expirada', 'desconectada')),
+  consent_expires_at TIMESTAMPTZ,
+  last_synced_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE entradas ADD COLUMN IF NOT EXISTS origem VARCHAR(24) NOT NULL DEFAULT 'manual';
+ALTER TABLE entradas ADD COLUMN IF NOT EXISTS conexao_bancaria_id UUID REFERENCES conexoes_bancarias (id) ON DELETE SET NULL;
+ALTER TABLE entradas ADD COLUMN IF NOT EXISTS transacao_externa_id VARCHAR(120);
+ALTER TABLE entradas ADD COLUMN IF NOT EXISTS instituicao_nome VARCHAR(120);
+
+ALTER TABLE saidas ADD COLUMN IF NOT EXISTS origem VARCHAR(24) NOT NULL DEFAULT 'manual';
+ALTER TABLE saidas ADD COLUMN IF NOT EXISTS conexao_bancaria_id UUID REFERENCES conexoes_bancarias (id) ON DELETE SET NULL;
+ALTER TABLE saidas ADD COLUMN IF NOT EXISTS transacao_externa_id VARCHAR(120);
+ALTER TABLE saidas ADD COLUMN IF NOT EXISTS instituicao_nome VARCHAR(120);
+
+CREATE INDEX IF NOT EXISTS idx_conexoes_bancarias_usuario ON conexoes_bancarias (usuario_id, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS conexoes_bancarias_item_unique
+  ON conexoes_bancarias (provedor, provedor_item_id)
+  WHERE provedor_item_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS entradas_transacao_bancaria_unique
+  ON entradas (usuario_id, conexao_bancaria_id, transacao_externa_id)
+  WHERE transacao_externa_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS saidas_transacao_bancaria_unique
+  ON saidas (usuario_id, conexao_bancaria_id, transacao_externa_id)
+  WHERE transacao_externa_id IS NOT NULL;
+
 DO $$
 DECLARE
   andrea_antiga_id UUID;

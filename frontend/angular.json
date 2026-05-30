@@ -38,6 +38,9 @@
             "styles": [
               "src/styles.scss"
             ],
+            "allowedCommonJsDependencies": [
+              "zoid/dist/zoid.frameworks.frame"
+            ],
             "scripts": []
           },
           "configurations": {

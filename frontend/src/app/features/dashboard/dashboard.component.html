@@ -100,31 +100,29 @@
         <p>{{ mensagemEconomia() }}</p>
       </article>
 
-      <div class="cards-row-movimentos">
-        <article class="card card--movimento">
-          <div class="card-label">
-            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="12" y1="19" x2="12" y2="5"/>
-              <polyline points="5 12 12 5 19 12"/>
-            </svg>
-            Entradas
-          </div>
-          <div class="card-value card-value--green">{{ formatarValor(totalEntradas()) }}</div>
-          <a routerLink="/entradas" class="card-link">Ver entradas &rarr;</a>
-        </article>
+      <article class="card card--movimento">
+        <div class="card-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="19" x2="12" y2="5"/>
+            <polyline points="5 12 12 5 19 12"/>
+          </svg>
+          Entradas
+        </div>
+        <div class="card-value card-value--green">{{ formatarValor(totalEntradas()) }}</div>
+        <a routerLink="/entradas" class="card-link">Ver entradas &rarr;</a>
+      </article>
 
-        <article class="card card--movimento">
-          <div class="card-label">
-            <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <polyline points="19 12 12 19 5 12"/>
-            </svg>
-            Saídas
-          </div>
-          <div class="card-value card-value--red">{{ formatarValor(totalSaidas()) }}</div>
-          <a routerLink="/saidas" class="card-link">Ver saídas &rarr;</a>
-        </article>
-      </div>
+      <article class="card card--movimento">
+        <div class="card-label">
+          <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <polyline points="19 12 12 19 5 12"/>
+          </svg>
+          Saídas
+        </div>
+        <div class="card-value card-value--red">{{ formatarValor(totalSaidas()) }}</div>
+        <a routerLink="/saidas" class="card-link">Ver saídas &rarr;</a>
+      </article>
     </section>
 
     <section class="daily-section">
@@ -224,6 +222,7 @@
               <tr>
                 <th scope="col">Tipo</th>
                 <th scope="col">Descrição</th>
+                <th scope="col">Origem</th>
                 <th scope="col">Data</th>
                 <th scope="col" class="th-valor">Valor</th>
               </tr>
@@ -237,6 +236,7 @@
                     </span>
                   </td>
                   <td>{{ transacao.descricao }}</td>
+                  <td>{{ transacao.instituicao ?? 'Manual' }}</td>
                   <td>{{ formatarDataCompleta(transacao.data) }}</td>
                   <td class="td-valor">{{ transacao.valor > 0 ? '+' : '-' }}{{ formatarValor(abs(transacao.valor)) }}</td>
                 </tr>

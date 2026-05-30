@@ -3,6 +3,8 @@ export interface Entrada {
   descricao: string;
   valor: string;
   data_referencia: string;
+  origem: string;
+  instituicao_nome: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -12,6 +14,8 @@ export interface Saida {
   descricao: string;
   valor: string;
   data_referencia: string;
+  origem: string;
+  instituicao_nome: string | null;
   created_at: string;
   updated_at: string;
 }

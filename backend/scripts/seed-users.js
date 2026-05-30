@@ -19,20 +19,31 @@ async function main() {
     database: process.env.DATABASE_NAME || 'contabilidade',
   });
 
+  const pinMateus = process.env.SEED_PIN_MATEUS;
+  const pinAndrea = process.env.SEED_PIN_ANDREA;
+
+  if (!pinMateus || !/^\d{4}$/.test(pinMateus)) {
+    throw new Error('SEED_PIN_MATEUS não definido ou inválido. Defina com 4 dígitos no .env antes de executar o seed.');
+  }
+
+  if (!pinAndrea || !/^\d{4}$/.test(pinAndrea)) {
+    throw new Error('SEED_PIN_ANDREA não definido ou inválido. Defina com 4 dígitos no .env antes de executar o seed.');
+  }
+
   const usuarios = [
     {
       nome: 'Mateus',
       sobrenome: 'Silva',
       email: 'mateus@familymoney.app',
-      pin: '0708',
-      salt: 'mateus-salt-v1',
+      pin: pinMateus,
+      salt: `mateus-${crypto.randomBytes(8).toString('hex')}`,
     },
     {
       nome: 'Andréa',
       sobrenome: 'Silva',
       email: 'andrea@familymoney.app',
-      pin: '2506',
-      salt: 'andrea-salt-v1',
+      pin: pinAndrea,
+      salt: `andrea-${crypto.randomBytes(8).toString('hex')}`,
     },
   ];
 

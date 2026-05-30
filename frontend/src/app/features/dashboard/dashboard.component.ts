@@ -28,6 +28,7 @@ interface Transacao {
   data: string;
   tipo: 'entrada' | 'saida';
   grupo: string;
+  instituicao: string | null;
 }
 
 interface DadosMes {
@@ -147,6 +148,7 @@ export class DashboardComponent implements OnInit {
         data: entrada.data_referencia,
         tipo: 'entrada' as const,
         grupo: 'Entrada',
+        instituicao: entrada.instituicao_nome ?? null,
       }));
 
     const saidasPeriodo: Transacao[] = this.saidas()
@@ -158,6 +160,7 @@ export class DashboardComponent implements OnInit {
         data: saida.data_referencia,
         tipo: 'saida' as const,
         grupo: 'Saída',
+        instituicao: saida.instituicao_nome ?? null,
       }));
 
     return [...entradasPeriodo, ...saidasPeriodo].sort((a, b) => b.data.localeCompare(a.data));
@@ -169,7 +172,7 @@ export class DashboardComponent implements OnInit {
 
     return this.transacoesDoPeriodo()
       .filter(t => tipo === 'todos' || t.tipo === tipo)
-      .filter(t => !termo || this.normalizarTexto(`${t.descricao} ${t.grupo}`).includes(termo));
+      .filter(t => !termo || this.normalizarTexto(`${t.descricao} ${t.grupo} ${t.instituicao ?? ''}`).includes(termo));
   });
 
   readonly totalEntradasPeriodoCentavos = computed(() =>

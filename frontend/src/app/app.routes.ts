@@ -22,6 +22,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/saidas/saidas.component').then(m => m.SaidasComponent),
       },
       {
+        path: 'bancos',
+        loadComponent: () => import('./features/bancos/bancos.component').then(m => m.BancosComponent),
+      },
+      {
         path: 'lancamento/:tipo',
         loadComponent: () => import('./features/lancamento/lancamento.component').then(m => m.LancamentoComponent),
       },

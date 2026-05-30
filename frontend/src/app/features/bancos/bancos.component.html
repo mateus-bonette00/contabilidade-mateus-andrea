@@ -1,0 +1,136 @@
+<div class="page">
+  <header class="hero">
+    <span class="eyebrow">Open Finance</span>
+    <h1>Conecte suas contas bancárias</h1>
+    <p>Escolha uma instituição e autorize com segurança para importar entradas e saídas no sistema.</p>
+  </header>
+
+  @if (carregando()) {
+    <div class="loading">Carregando bancos...</div>
+  } @else {
+    @if (!integracaoPronta()) {
+      <section class="notice notice--pending">
+        <strong>Integração pronta para ativação</strong>
+        <p>
+          A interface já está disponível. Para abrir autorizações reais, configure
+          <code>PLUGGY_CLIENT_ID</code> e <code>PLUGGY_CLIENT_SECRET</code> no backend e confirme a liberação do ambiente de produção na Pluggy.
+        </p>
+      </section>
+    }
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Passo 1</span>
+          <h2>Escolha seu banco</h2>
+        </div>
+      </div>
+
+      <div class="instituicoes">
+        @for (instituicao of configuracao()?.instituicoes ?? []; track instituicao.codigo) {
+          <button
+            type="button"
+            class="instituicao"
+            [class.instituicao--selected]="instituicaoSelecionada()?.codigo === instituicao.codigo"
+            (click)="selecionarBanco(instituicao)"
+          >
+            <span class="bank-icon">{{ instituicao.nome.charAt(0) }}</span>
+            <strong>{{ instituicao.nome }}</strong>
+            <small>{{ instituicao.disponivel ? 'Conectar via Open Finance' : 'Aguardando configuração' }}</small>
+          </button>
+        }
+      </div>
+    </section>
+
+    @if (instituicaoSelecionada(); as banco) {
+      <section class="panel authorization">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">Passo 2</span>
+            <h2>Autorizar {{ banco.nome }}</h2>
+          </div>
+        </div>
+        <p class="helper">
+          O documento serve somente para preencher a jornada segura do Open Finance.
+          Senhas e confirmações são informadas apenas no ambiente do banco.
+        </p>
+
+        <div class="form-grid">
+          <label class="field">
+            <span>Tipo de titular</span>
+            <select [(ngModel)]="tipoDocumento">
+              <option value="cpf">Pessoa física (CPF)</option>
+              <option value="cnpj">Pessoa jurídica (CNPJ)</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>{{ tipoDocumento === 'cpf' ? 'CPF' : 'CNPJ' }}</span>
+            <input
+              type="text"
+              inputmode="numeric"
+              [placeholder]="tipoDocumento === 'cpf' ? 'Somente 11 números' : 'Somente 14 números'"
+              [(ngModel)]="documento"
+            />
+          </label>
+        </div>
+
+        <button type="button" class="btn btn--primary" [disabled]="conectando()" (click)="iniciarConexao()">
+          {{ conectando() ? 'Abrindo autorização...' : 'Continuar para autorização segura' }}
+        </button>
+      </section>
+    }
+
+    @if (erro()) {
+      <p class="message message--error">{{ erro() }}</p>
+    }
+    @if (mensagem()) {
+      <p class="message message--success">{{ mensagem() }}</p>
+    }
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <span class="eyebrow">Minhas conexões</span>
+          <h2>Bancos conectados</h2>
+        </div>
+      </div>
+
+      @if (conexoes().length === 0) {
+        <div class="empty">
+          <strong>Nenhum banco conectado.</strong>
+          <p>Escolha uma instituição acima para começar.</p>
+        </div>
+      } @else {
+        <div class="connections">
+          @for (conexao of conexoes(); track conexao.id) {
+            <article class="connection">
+              <div>
+                <strong>{{ conexao.instituicao_nome }}</strong>
+                <span class="status">Conectado</span>
+                <small>Última sincronização: {{ formatarData(conexao.last_synced_at) }}</small>
+              </div>
+              <div class="actions">
+                <button
+                  type="button"
+                  class="btn btn--sync"
+                  [disabled]="processandoId() === conexao.id"
+                  (click)="sincronizar(conexao)"
+                >
+                  Sincronizar
+                </button>
+                <button
+                  type="button"
+                  class="btn btn--danger"
+                  [disabled]="processandoId() === conexao.id"
+                  (click)="desconectar(conexao)"
+                >
+                  Desconectar
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </section>
+  }
+</div>

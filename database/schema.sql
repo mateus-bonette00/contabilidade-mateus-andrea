@@ -56,8 +56,43 @@ CREATE TABLE IF NOT EXISTS saidas (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS conexoes_bancarias (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  usuario_id UUID NOT NULL REFERENCES usuarios (id) ON DELETE CASCADE,
+  instituicao_codigo VARCHAR(40) NOT NULL,
+  instituicao_nome VARCHAR(120) NOT NULL,
+  provedor VARCHAR(32) NOT NULL DEFAULT 'pluggy',
+  provedor_item_id VARCHAR(120),
+  status VARCHAR(24) NOT NULL DEFAULT 'ativa'
+    CHECK (status IN ('ativa', 'erro', 'expirada', 'desconectada')),
+  consent_expires_at TIMESTAMPTZ,
+  last_synced_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE entradas ADD COLUMN IF NOT EXISTS origem VARCHAR(24) NOT NULL DEFAULT 'manual';
+ALTER TABLE entradas ADD COLUMN IF NOT EXISTS conexao_bancaria_id UUID REFERENCES conexoes_bancarias (id) ON DELETE SET NULL;
+ALTER TABLE entradas ADD COLUMN IF NOT EXISTS transacao_externa_id VARCHAR(120);
+ALTER TABLE entradas ADD COLUMN IF NOT EXISTS instituicao_nome VARCHAR(120);
+
+ALTER TABLE saidas ADD COLUMN IF NOT EXISTS origem VARCHAR(24) NOT NULL DEFAULT 'manual';
+ALTER TABLE saidas ADD COLUMN IF NOT EXISTS conexao_bancaria_id UUID REFERENCES conexoes_bancarias (id) ON DELETE SET NULL;
+ALTER TABLE saidas ADD COLUMN IF NOT EXISTS transacao_externa_id VARCHAR(120);
+ALTER TABLE saidas ADD COLUMN IF NOT EXISTS instituicao_nome VARCHAR(120);
+
 CREATE INDEX IF NOT EXISTS idx_entradas_usuario_data ON entradas (usuario_id, data_referencia);
 CREATE INDEX IF NOT EXISTS idx_saidas_usuario_data ON saidas (usuario_id, data_referencia);
+CREATE INDEX IF NOT EXISTS idx_conexoes_bancarias_usuario ON conexoes_bancarias (usuario_id, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS conexoes_bancarias_item_unique
+  ON conexoes_bancarias (provedor, provedor_item_id)
+  WHERE provedor_item_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS entradas_transacao_bancaria_unique
+  ON entradas (usuario_id, conexao_bancaria_id, transacao_externa_id)
+  WHERE transacao_externa_id IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS saidas_transacao_bancaria_unique
+  ON saidas (usuario_id, conexao_bancaria_id, transacao_externa_id)
+  WHERE transacao_externa_id IS NOT NULL;
 
 DO $$
 DECLARE
@@ -83,32 +118,7 @@ BEGIN
     SET nome = 'Andréa',
         sobrenome = COALESCE(NULLIF(trim(sobrenome), ''), 'Silva'),
         email = COALESCE(NULLIF(trim(email), ''), 'andrea@familymoney.app'),
-        pin_hash = 'db4c4440229dc070af8e27c4244d83d4cd3ed9cb5c81b6777d518b9ff23f529b7c90a23e14b9790c1db830f819512fcb9135f1bcbff1c1c33b87be108c8e3c59',
-        pin_salt = 'andrea-salt-v1',
         updated_at = NOW()
     WHERE id = andrea_antiga_id;
   END IF;
 END $$;
-
-INSERT INTO usuarios (nome, sobrenome, email, pin_hash, pin_salt)
-VALUES
-  (
-    'Mateus',
-    'Silva',
-    'mateus@familymoney.app',
-    'e3c9f94b80b53a731cee80e153b7689898f35bc78107023d9e4eb9a61d830989cd8f02774910701cfff31731e87f4bb5088463dd8dc58dc621b8890fb1111126',
-    'mateus-salt-v1'
-  ),
-  (
-    'Andréa',
-    'Silva',
-    'andrea@familymoney.app',
-    'db4c4440229dc070af8e27c4244d83d4cd3ed9cb5c81b6777d518b9ff23f529b7c90a23e14b9790c1db830f819512fcb9135f1bcbff1c1c33b87be108c8e3c59',
-    'andrea-salt-v1'
-  )
-ON CONFLICT (email) DO UPDATE
-SET nome = EXCLUDED.nome,
-    sobrenome = EXCLUDED.sobrenome,
-    pin_hash = EXCLUDED.pin_hash,
-    pin_salt = EXCLUDED.pin_salt,
-    updated_at = NOW();
